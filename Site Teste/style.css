@@ -1,0 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Revalia&display=swap');
+
+footer {
+    position: fixed;
+    bottom: 0%;
+    left: 0%;
+    width: 100%;
+    height: 7%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #021526;
+    color:antiquewhite;
+    margin: 0;
+    padding: 0; 
+}
+
+.footer_element{
+    margin-bottom: 0;
+    margin-top: 0;
+}
+
+main {
+    position: fixed;
+    top: 25%;
+    left: 0%;
+    width: 100%;
+    height: 5%;
+    color:#021526;
+    text-align: center;
+
+}
+
+.page-body{
+    background-color: antiquewhite;
+}
+
+.engine-name{
+    font-family: Revalia, sans-serif;
+}
+
+.tabs-row{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    top: 0%;
+    left: 0%;
+    width: 100%;
+    height: 10%;
+    position: absolute;
+    justify-content: left;
+    align-content: end;
+    background-image: url("games.jpg");
+    background-position: top;
+    background-attachment: scroll;
+}
+
+.tab{
+    background-color: #021526;
+    color: aliceblue;
+    opacity: .7;
+    border-top-right-radius: 10%;
+    margin-right: 5px;
+}
+
+.tab:hover{
+    opacity: 1;
+}
+
