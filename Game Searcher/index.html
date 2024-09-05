@@ -24,11 +24,11 @@
                 <section><!--Seções servem para dividir a lógica do código em partes, esssa em particular serve para a área de busca--> 
                         <div class="search">
                                 <h1 class="engine-name">Game Searcher</h1>
-                                <input type="text" id="fname" name="fname" value="" class="search" placeholder="Insira aqui as tags que você deseja buscar(use hífens para espaços)"><br>
-                                <button class="search">Buscar</button>
+                                <input type="text" id="search-field" name="fname" value="" class="search" placeholder="Insira aqui as tags que você deseja buscar(use hífens para espaços)"><br>
+                                <button class="search" onclick="Consult()">Buscar</button>
                         </div>
                 </section>
-                <section class="results"> <!--Seção para os resultados da busca-->
+                <section class="results" id="result-section"> <!--Seção para os resultados da busca-->
                         
                 </section>
         </main>
