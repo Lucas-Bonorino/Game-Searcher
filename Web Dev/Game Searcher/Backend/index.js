@@ -16,7 +16,7 @@ const app = express();
 const cors = require('cors');
 app.use(cors({origin: '*'}));
 
-//Para cada funcionalidade, precisamos de uma URI(caminho parecido com URL)
+//Para cada funcionalidade, precisamos de uma URI
 //Essa linha garante que sabemos o que fazer quando uma URI com a forma de 
 // "/consulta/tag" é acessado 
 app.get("/consulta/:tag_list", async (req, res) =>{

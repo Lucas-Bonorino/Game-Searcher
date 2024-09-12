@@ -28,7 +28,7 @@ function addgame(game)
     return(Game_Result);
 }
 
-function Consult()
+async function Consult()
 {
     //O value pega o quê está dentro da tag
     let search_field=document.getElementById("search-field").value;
@@ -40,17 +40,22 @@ function Consult()
     if(tags=="")
         return;
 
-    //O fetch é o responsável por dizer a URI que nós queremos ao servidor backend(além de fornecer a URL e porta do servidor)
-    fetch("http://localhost:3000/consulta/"+tags)
-        .then(response=>response.json())
-        .then(data=> {
-            let section_buffer="";
-            for(let item of data) 
-                {
-                const game = new Game_Data(item.game_name, item.tags, item.release_date, item.description);
-                section_buffer+=addgame(game);
-                }
-            section.innerHTML=section_buffer})
-        .catch(error=>{console.error("Erro ao buscar dados", error);});
+    try
+    {
+        const response=await fetch("http://localhost:3000/consulta/"+tags);
+        const data= await response.json();
     
+        let section_buffer="";
+    
+        data.forEach(item =>{
+            const game=new Game_Data(item.game_name, item.tags, item.release_date, item.description);
+            section_buffer+=addgame(game);
+        });
+    
+        section.innerHTML=section_buffer;
+    } 
+    catch(err)
+    {
+        console.error("Erro ao buscar dados", err);
+    }          
 }
