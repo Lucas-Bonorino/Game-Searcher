@@ -42,9 +42,9 @@ async function Consult()
 
     try
     {
-        const response=await fetch("http://localhost:3000/consulta/"+tags);
-        const data= await response.json();
-    
+        const response=await fetch("http://localhost:3000/games/tags/"+tags);
+        const data_json= await response.json();
+        const data=data_json.data.games;
         let section_buffer="";
     
         data.forEach(item =>{

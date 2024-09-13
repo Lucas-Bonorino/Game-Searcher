@@ -3,9 +3,6 @@ require("dotenv").config();
 //Pega a porta de acesso ao servidor backend
 const port = process.env.PORT;
 
-//Pega o arquivo javascript no qual estão as funcões do backend
-const db = require("./data");
-
 //Pega o express para começar a rodar o servidor
 const express = require("express");
 
@@ -15,13 +12,21 @@ const app = express();
 //Diz quem são as entidades que tem direito de acesso ao server
 const cors = require('cors');
 app.use(cors({origin: '*'}));
+app.use(express.json());
 
-//Para cada funcionalidade, precisamos de uma URI
-//Essa linha garante que sabemos o que fazer quando uma URI com a forma de 
-// "/consulta/tag" é acessado 
-app.get("/consulta/:tag_list", async (req, res) =>{
-    const games= await db.Consult_Game_By_Tag(req.params.tag_list);
-    res.json(games);
-})
+//Podemos fazer mounting para criar subaplicações, usando objetos routers como middleware 
+//para cada subaplicação, nesse caso, podemos fazer isso da seguinte maneira
 
-app.listen(port);
+//Criamos um roteador para a subaplicação
+const GameRouter=require('./Routes/GameRoutes');
+const UserRouter=require('./Routes/UserRoutes');
+
+//Tratamos ele como middleware que captura um prefixo de URL e direciona ao roteador
+//De um resource
+//Registramos ao roteador as URLs possíveis e adicionamos seus handlers(dentro dos arquivos com os routers)
+app.use("/api/v1/games",  GameRouter);
+app.use("/api/v1/users",  UserRouter);
+
+
+module.exports=app;
+
