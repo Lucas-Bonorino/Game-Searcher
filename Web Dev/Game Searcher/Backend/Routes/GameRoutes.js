@@ -1,11 +1,11 @@
 const express= require('express');
 const Controller=require('./../Controllers/GameController');
+const Middleware=require('./../middleWare/gameDataMiddleware');
 
 const Router=express.Router();
 
-Router.get("/:filter_list", Controller.GetFilteredGames);
 //É possível usar múltiplos handlers para uma mesma rota
-Router.route("/").post(Controller.check_body, Controller.AddGame).get(Controller.GetGames);
-Router.route("/:name").delete(Controller.DeleteGame).patch(Controller.UpdateGame);
+Router.route("/").post(Middleware.Check_Body, Middleware.Clean_Name, Middleware.Clean_Description,Middleware.Clean_Tags, Controller.AddGame).get(Controller.GetGames);
+Router.route("/:name").delete(Middleware.Clean_Name, Controller.DeleteGame).patch(Middleware.Clean_Name,Middleware.Clean_Tags,Middleware.Clean_Description,Controller.UpdateGame);
 
 module.exports=Router;

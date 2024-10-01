@@ -1,48 +1,36 @@
-const db = require("../Data_Access/GameData");
+const db = require("./../Data_Access/GameData");
+const catchWrapper= require('./../utils/catchAsyncWrapper');
+const appError = require('./../utils/appError');
 
-async function GetFilteredGames(req, res)
+const GetGames = catchWrapper(async (req, res, next) =>
 {
-    const games= await db.Get_Game_By_Filter(req.params.filter_list);
+    const games=await db.Get_Games(req.query);
     res.json({
         status: "success" ,
         data : {
             games:games
         }
     });
-}
+});
 
-async function GetGames(req, res) 
+const AddGame = catchWrapper(async (req, res, next) =>
 {
-    const games=await db.Get_All_Games();
-    res.json({
-        status: "success" ,
+    const answer = await db.Add_Game(req.body);
+
+    if(!answer){
+        return(next(new appError(`Game ${req.body.game_name} already in database`, 409, 'fail')));
+    }
+
+    res.status(201).json({
+        status: "success",
         data : {
-            games:games
+            game: req.body
         }
     });
-}
+    
+})
 
-async function AddGame(req, res)
-{
-    try{
-        await db.Add_Game(req.body);
-        res.status(201).json({
-            status: "success",
-            data : {
-                game: req.body
-        }});
-    }
-    catch (err)
-    {
-        res.status(409).json({
-            status: "failure",
-            data: {
-                error: err.message
-        }});
-    }
-}
-
-async function DeleteGame(req, res) 
+const DeleteGame = catchWrapper(async (req, res, next) => 
 {
     const answer = await db.Delete_Game(req.params.name);
     res.status(201).json({
@@ -51,47 +39,27 @@ async function DeleteGame(req, res)
             deleted_game : answer
         }
     });
-}    
+})    
 
-async function UpdateGame(req, res) 
+const UpdateGame = catchWrapper(async (req, res, next) => 
 {
-    try{
-        const answer = await db.Update_Game(req.body, req.params.name);
-        res.status(201).json({
-            stats:"success", 
-            data:{
-                updated_game: answer
-            }
-        });
+    const answer = await db.Update_Game(req.body, req.params.name);
+
+    if(!answer.length){
+        return(next(new appError(`No game with name ${req.params.name} found`, 422, 'fail')));
     }
-    catch (err)
-    {
-        res.status(422).json({
-            status: "failure",
-            data: {
-                error: err.message
-        }});
-    }    
-}
 
-const check_body=(req, res, next) =>{
-    let Missing_Body_Part=!req.body.game_name || !req.body.description || !req.body.release_date;
-
-    if (Missing_Body_Part) 
-        return res.status(400).json({
-            status:"failure",
-            message : "Missing game information(release date, description or name)"
+    res.status(201).json({
+        stats:"success", 
+        data:{
+                updated_game: answer
+        }
     });
-
-    next()
-}
-
+})
 
 module.exports={
-    GetFilteredGames,
     GetGames,
     AddGame,
     DeleteGame,
     UpdateGame,
-    check_body
 }

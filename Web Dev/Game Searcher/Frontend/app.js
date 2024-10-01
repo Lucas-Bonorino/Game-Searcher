@@ -28,21 +28,41 @@ function addgame(game)
     return(Game_Result);
 }
 
+async function Process_Data(response)
+{
+    const data_json= await response.json();
+    const data=data_json.data.games;
+    let section_buffer="";
+    
+    data.forEach(item =>{
+        const game=new Game_Data(item.game_name, item.tags, item.release_date, item.description);
+        section_buffer+=addgame(game);
+    });
+
+    return section_buffer;
+}
+
+
 async function Consult()
 {
     //O value pega o quê está dentro da tag
-    let search_field=document.getElementById("search-field").value;
+    let search_field=document.getElementById("search-field").value.trim();
 
     let section=document.getElementById("result-section");
 
-    let tags=search_field.replaceAll(" ", "+");
+    let tags=search_field.replaceAll(/[ \t\r\n\v\f]+/g, "+");
 
-    if(tags=="")
-        return;
+    let plus_len=tags.replaceAll(/[^+]/g, "").length;
+
+    let query_string="http://localhost:3000/api/v1/games";
+
+    if(plus_len!=tags.length);
+        query_string+=`?tags=${tags}`;
 
     try
     {
-        const response=await fetch("http://localhost:3000/games/tags/"+tags);
+        const response= await fetch(query_string);
+        
         const data_json= await response.json();
         const data=data_json.data.games;
         let section_buffer="";
@@ -57,5 +77,5 @@ async function Consult()
     catch(err)
     {
         console.error("Erro ao buscar dados", err);
-    }          
+    }         
 }
