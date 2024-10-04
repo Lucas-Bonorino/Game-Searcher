@@ -9,12 +9,10 @@ function generateFilters(query)
 
     if(query.tags){
         const tagFilters = query.tags.toLowerCase().split(' ').map(el=> el.replaceAll("_", " "));
-        const nameFilters = tagFilters.map(el => '%' + el + '%');
 
         const tagFilterOBJ={column: 'tags', operation: '&&', value:tagFilters};
-        const nameFilterOBJ={column: 'game_name', operation: 'ilike', value:nameFilters, modifier: 'ANY'};
 
-        filters=filters.concat([tagFilterOBJ, nameFilterOBJ]);
+        filters.push(tagFilterOBJ);
     }
 
     if(query.name){
@@ -79,14 +77,46 @@ function generateUpdates(body)
 
 function generateValues(game_data)
 {
-    let values=[game_data.game_name, game_data.tags, game_data.release_date, game_data.description];
+    let values=[];
+    let cols=[];
+    
+    if(game_data.game_name){
+        values.push(game_data.game_name);
+        cols.push('game_name');
+    }
 
-    return(values);
+    if(game_data.tags){
+        values.push(game_data.tags);
+        cols.push('tags');
+    }
+
+    if(game_data.release_date){
+        values.push(game_data.release_date);
+        cols.push('release_date');
+    }
+
+    if(game_data.description){
+        values.push(game_data.description);
+        cols.push('description');
+    }
+
+    return([values, cols]);
 }
 
+function getResourceName()
+{
+    return('games');
+}
+
+function generateIdentifierFilter(req)
+{
+    return({column: "game_name", operation: "=", value: APIF.Process_Sentence(req.params.name)});
+}
 
 module.exports={
+    getResourceName,
     generateValues,
     generateFilters,
-    generateUpdates
+    generateUpdates,
+    generateIdentifierFilter
 }

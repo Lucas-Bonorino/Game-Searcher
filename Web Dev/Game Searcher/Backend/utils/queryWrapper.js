@@ -289,7 +289,6 @@ class queryWrapper {
     {
         const client = await connection.connect();
         let answer;
-        this.logQuery();
 
         try{
             answer= (await client.query(this.queryString, this.args)).rows;
@@ -304,6 +303,4 @@ class queryWrapper {
     }
 }
 
-module.exports={
-    queryWrapper
-}
+module.exports=queryWrapper;
