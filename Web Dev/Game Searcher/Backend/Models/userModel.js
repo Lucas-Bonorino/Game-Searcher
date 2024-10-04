@@ -1,4 +1,4 @@
-const connection = require('./connection');
+const connection = require('./../utils/connection');
 const crypto = require('crypto');
 
 async function Add_User(user_data)

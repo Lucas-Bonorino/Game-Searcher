@@ -1,7 +1,6 @@
 const express= require('express');
 const Controller=require('./../Controllers/UserController');
 const AuthController = require('./../Controllers/AuthController');
-const Middleware=require('./../middleWare/userDataMiddleware');
 const Router=express.Router();
 
 //Para cada funcionalidade, precisamos de uma URL
@@ -12,11 +11,11 @@ const Router=express.Router();
 //patch(update com apenas novos dados sendo recebidos), delete) 
 
 //Registramos ao roteador as URLs possíveis e adicionamos seus handlers
-Router.post("/signup", Middleware.validateEmail, Middleware.confirmPassword, Middleware.hashPassword, AuthController.signup);
+Router.post("/signup", AuthController.validateEmail, AuthController.confirmPassword, AuthController.hashPassword, AuthController.signup);
 Router.post("/login", AuthController.login);
 
 Router.post("/forgotPassword", AuthController.forgotPassword);
-Router.patch("/resetPassword/:token", Middleware.confirmPassword, Middleware.hashPassword, AuthController.resetPassword);
+Router.patch("/resetPassword/:token", AuthController.confirmPassword, AuthController.hashPassword, AuthController.resetPassword);
 
 Router.route("/").post(Controller.AddUser);
 Router.route("/:id").get(Controller.GetUser);

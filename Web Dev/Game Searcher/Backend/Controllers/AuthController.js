@@ -1,11 +1,12 @@
-const User= require('./../Data_Access/userData');
+const User= require('../Models/userModel');
 const catchAsyncWrapper=require('./../utils/catchAsyncWrapper');
-const db = require('./../Data_Access/userData');
+const db = require('../Models/userModel');
 const appError = require('../utils/appError');
 const jwt = require('jsonwebtoken');
 const BCrypt =require('bcryptjs');
 const {promisify} = require('util');
 const email = require('./../utils/email');
+const validator= require('validator');
 
 const signToken = id => {
     return jwt.sign({id}, process.env.JWT_SECRET, {expiresIn: process.env.JWT_EXPIRES_IN});
@@ -152,7 +153,6 @@ const resetPassword=catchAsyncWrapper(async (req, res, next)=>{
     //Get user based on token
     const hashedToken=db.cryptoHash(req.params.token);
 
-
     //If token has not expired, and there is user, set password
     const user = (await db.getUserByToken(hashedToken))[0];
 
@@ -166,7 +166,6 @@ const resetPassword=catchAsyncWrapper(async (req, res, next)=>{
     await db.updateTokens(hashedToken);
     
     //Log the user in 
-
     const token=signToken(user.email);
 
     res.status(200).json({
@@ -176,11 +175,40 @@ const resetPassword=catchAsyncWrapper(async (req, res, next)=>{
 
 })
 
+
+const validateEmail=(req, res, next) =>{
+    const validEmail=validator.isEmail(req.body.email);
+
+    if(!validEmail)
+        next(new appError(`Email ${req.body.email} not valid`, 422, 'fail'));
+
+    next();
+}
+
+const confirmPassword= (req, res, next) =>{
+    const confirmedPassword=req.body.password===req.body.passwordConfirmation;
+
+    if(!confirmedPassword)
+        next(new appError('Passwords must be the same', 422, 'fail'));
+
+    next()
+}
+
+const hashPassword=async (req, res, next) =>{
+    req.body.password=await BCrypt.hash(req.body.password, 12);
+    req.body.passwordConfirmation=undefined;
+    
+    next();
+}
+
 module.exports={
     signup,
     login, 
     protect,
     restrictTo,
     forgotPassword,
-    resetPassword
+    resetPassword,
+    validateEmail,
+    confirmPassword,
+    hashPassword
 }
