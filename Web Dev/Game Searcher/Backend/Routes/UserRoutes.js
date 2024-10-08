@@ -14,6 +14,7 @@ const middlewareFactory=require('./../utils/middlwareFactory')
 //Registramos ao roteador as URLs possíveis e adicionamos seus handlers
 Router.post("/signup", middlewareFactory.checkRequiredBodyFields('email', 'name', 'password','passwordConfirmation'), AuthController.validateEmail, AuthController.confirmPassword, AuthController.hashPassword, middlewareFactory.restrictBody('role'),middlewareFactory.restrictReturns("name", "email"), AuthController.signup);
 Router.post("/login", middlewareFactory.checkRequiredBodyFields('email', 'password'), Controller.addEmailQueryFromBody,middlewareFactory.restrictQuery("name", "role"), AuthController.login);
+Router.get("logout", AuthController.logout);
 
 Router.post("/forgotPassword", middlewareFactory.checkRequiredBodyFields('email'), AuthController.validateEmail, AuthController.forgotPassword);
 Router.patch("/resetPassword/:token",middlewareFactory.checkRequiredBodyFields('password', 'passwordConfirmation'), AuthController.confirmPassword, AuthController.hashPassword, AuthController.resetPassword);

@@ -10,7 +10,7 @@ const generatAnswerObj=(resourceData)=>{
     return({status:"sucess",data: {resource: resourceData}});
 }
 
-const getResource = Model => async (req, res, next)=>{
+const getResource = Model => catchAsyncWrapper(async (req, res, next)=>{
     const queryOBJ=new queryWrapper(Model.getResourceName());
     const filters= Model.generateFilters(req.query);
  
@@ -18,19 +18,8 @@ const getResource = Model => async (req, res, next)=>{
 
     const resource=await queryOBJ.Query();
 
-    if((!resource || !resource.length) && !req.body.sendBack){
-        return(next(new appError('Could not get data or it doesn\'t exist, try again later or change requested data', 400,'fail')))
-    }
-
-    if(req.body.sendBack){
-        return(resource);
-    }
-    else{
-        const answerObject=generatAnswerObj(resource);
-
-        sendResponse(res, 200, answerObject);
-    }
-}
+    return(resource);
+})
 
 const createResource= Model => catchAsyncWrapper(async (req, res, next)=>{
     const queryOBJ=new queryWrapper(Model.getResourceName());
@@ -40,18 +29,7 @@ const createResource= Model => catchAsyncWrapper(async (req, res, next)=>{
 
     const createdResource= await queryOBJ.Query();
 
-    if((!createdResource || !createdResource.length) && !req.body.sendBack){
-        return(next(new appError(`Resource already in database`, 409, 'fail')));
-    }
-
-    if(req.body.sendBack){
-        return(createdResource);
-    }
-    else{
-        const answerObject=generatAnswerObj(createdResource);
-    
-        sendResponse(res, 201, answerObject);
-    }
+    return(createdResource);
 })
 
 const updateResource= Model=>catchAsyncWrapper(async (req, res, next)=>{
@@ -61,19 +39,8 @@ const updateResource= Model=>catchAsyncWrapper(async (req, res, next)=>{
     queryOBJ.Update().addUpdates(updates).addFilters(Model.generateIdentifierFilter(req)).Returning(req.validCols).endQuery();
 
     const updatedResource = await queryOBJ.Query();
-   
-    if((!updatedResource || !updatedResource.length) && !req.body.sendBack){
-        return(next(new appError(`No resource with especified identifiers found`, 422, 'fail')));
-    }
 
-    if(req.body.sendBack){
-        return(updatedResource);
-    }
-    else{
-        const answerObject=generatAnswerObj(updatedResource);
-    
-        sendResponse(res, 201, answerObject);
-    }
+    return(updatedResource);
 })
 
 const deleteResource= Model=>catchAsyncWrapper(async (req, res, next)=>{
@@ -83,31 +50,32 @@ const deleteResource= Model=>catchAsyncWrapper(async (req, res, next)=>{
 
     const deletedResource = await queryOBJ.Query();
 
-    if((!deletedResource || !deletedResource.length) && !req.body.sendBack){
-        return(next(new appError(`No resource with especified identifiers found`, 422, 'fail')));
-    }
-
-    if(req.body.sendBack){
-        return(deletedResource);
-    }
-    else{
-        const answerObject=generatAnswerObj(deletedResource);
-    
-        sendResponse(res, 201, answerObject);
-    }
+    return(deletedResource);
 })
 
 const functionByMethod={get: getResource, post: createResource, patch: updateResource, delete: deleteResource};
 const statusByMethod={get:200, post: 201, patch:201, delete:201 };
-
+const errorByMethod={
+    get: {msg: 'Could not get data or it doesn\'t exist',code: 400},
+    post: {msg:`Resource already in database`, code: 409},
+    patch: {msg:`No resource with especified identifiers found`, code: 422},
+    delete: {msg: `No resource with especified identifiers found`, code: 422}
+}
 
 const queryAndSendResponse=(Model) =>catchAsyncWrapper(async (req,res, next)=>{
+    const queryFunction=functionByMethod[req.method.toLowerCase()](Model);
+    const queryResponse=await queryFunction(req, res, next);
+    
+   
+    if(!queryResponse.length){
+        const errorObj=errorByMethod[req.method.toLowerCase()];
+        return(next(new appError(errorObj.msg, errorObj.code, 'fail')));
+    }
 
-    const queryFunction=functionByMethod[req.method.toLowerCase()];
-    const queryResponse=await queryFunction(Model)(req, res, next);
     const statusCode=statusByMethod[req.method.toLowerCase()];
+    const answerObject=generatAnswerObj(queryResponse);
 
-    sendResponse(res, statusCode, queryResponse);
+    sendResponse(res, statusCode, answerObject);
 })
 
 

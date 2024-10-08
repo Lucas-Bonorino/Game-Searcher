@@ -41,7 +41,7 @@ const createSendToken = async (id, res, statusCode, resourceData) =>{
 const signup=catchAsyncWrapper(async (req, res, next) =>{
     req.body.sendBack=true;
 
-    const loggedUser=await User.AddUser(req, res, next);
+    const loggedUser=await factory.createResource(UserModel)(req, res, next);
 
     if(loggedUser)
         createSendToken(req.body.email, res, 201, loggedUser);
@@ -50,10 +50,9 @@ const signup=catchAsyncWrapper(async (req, res, next) =>{
 })
 
 const login = catchAsyncWrapper(async (req, res, next) =>{
-    req.body.sendBack=true;
     //Verify if email and password are correct
 
-    const loggedUser=(await User.GetUser(req, res, next))[0];
+    const loggedUser=(await factory.getResource(UserModel)(req, res, next))[0];
  
     if(!loggedUser || !(await BCrypt.compare(req.body.password, loggedUser.password)))
         return(next(new appError(`Invalid combination of email and password`, 401, 'fail')));
@@ -89,10 +88,9 @@ const protect = catchAsyncWrapper(async (req, res, next) => {
 
     req.query.email=decoded.id;
     req.validCols=["name", "email", "role", "password_changed_at"];
-    req.body.sendBack=true;
 
     //verify if user still exists
-    const loggedUser= (await User.GetUser(req, res, next))[0];
+    const loggedUser= (await factory.getResource(UserModel)(req, res, next))[0];
 
     if(!loggedUser)
         return(next(new appError('User does not exist anymore', 401, 'fail')));
@@ -108,16 +106,14 @@ const protect = catchAsyncWrapper(async (req, res, next) => {
     
     req.validCols=undefined;
 
-    req.body.sendBack=undefined;
     next();
 })
 
 const forgotPassword=catchAsyncWrapper(async (req, res, next) =>{
     //Verify if user exists
-    req.body.sendBack=true;
     req.query={email:req.body.email};
     
-    const user = (await User.GetUser(req, res, next))[0];
+    const user = (await factory.getResource(UserModel)(req, res, next))[0];
  
     if(!user)
         return(next(new appError('No user with specified email address found', 404, 'fail')));
@@ -172,7 +168,7 @@ const resetPassword=catchAsyncWrapper(async (req, res, next)=>{
     //Update user password
     req.params.email=user.email;
   
-    const answer= (await User.UpdateUser(req, res, next));
+    const answer= (await factory.updateResource(UserModel)(req, res, next));
 
     if(!answer) return(next(new appError('An error ocurred when trying to update password, please try again later', 500, 'fail')));
 

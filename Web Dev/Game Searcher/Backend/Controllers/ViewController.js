@@ -14,15 +14,6 @@ const getMainPage=(req, res, next)=>{
     res.status(200).render('search');
 }
 
-const addReturn=(req, res, next)=>{
-    if(req.body)
-        req.body.sendBack=true;
-    else
-        req.body={sendBack:true};
-
-    next();
-}
-
 const isLogged=catchAsyncWrapper(async(req, res, next)=>{
     if(req.cookies.jwt){
         const decoded=promisify(jwt.verify)(req.cookies.jwt, process.env.SECRET);
@@ -52,5 +43,5 @@ const isLogged=catchAsyncWrapper(async(req, res, next)=>{
 module.exports={
     getMainPage,
     getResults,
-    addReturn
+
 };

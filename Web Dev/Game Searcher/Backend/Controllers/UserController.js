@@ -1,13 +1,13 @@
 const Model= require('./../Models/userModel');
 const factory= require('./handlerFactory');
 
-const GetUser=factory.getResource(Model);
+const GetUser=factory.queryAndSendResponse(Model);
 
-const AddUser=factory.createResource(Model);
+const AddUser=factory.queryAndSendResponse(Model);
 
-const UpdateUser=factory.updateResource(Model);
+const UpdateUser=factory.queryAndSendResponse(Model);
 
-const DeleteUser=factory.deleteResource(Model);
+const DeleteUser=factory.queryAndSendResponse(Model);
 
 const GetLoggedUser=(req, res, next) =>{
     factory.sendResponse(res, 200, req.user);
