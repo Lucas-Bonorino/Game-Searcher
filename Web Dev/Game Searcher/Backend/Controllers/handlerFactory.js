@@ -1,14 +1,13 @@
 const catchAsyncWrapper = require("../utils/catchAsyncWrapper");
 const queryWrapper = require("./../utils/queryWrapper");
 const appError= require('./../utils/appError');
-const jwt= require('jsonwebtoken');
 
 const sendResponse=(res, statusCode, answerObject)=>{
     res.status(statusCode).json(answerObject);
 }
 
 const generatAnswerObj=(resourceData)=>{
-    return({status:"sucess",data: {resourceData}});
+    return({status:"sucess",data: {resource: resourceData}});
 }
 
 const getResource = Model => async (req, res, next)=>{
@@ -98,6 +97,19 @@ const deleteResource= Model=>catchAsyncWrapper(async (req, res, next)=>{
     }
 })
 
+const functionByMethod={get: getResource, post: createResource, patch: updateResource, delete: deleteResource};
+const statusByMethod={get:200, post: 201, patch:201, delete:201 };
+
+
+const queryAndSendResponse=(Model) =>catchAsyncWrapper(async (req,res, next)=>{
+
+    const queryFunction=functionByMethod[req.method.toLowerCase()];
+    const queryResponse=await queryFunction(Model)(req, res, next);
+    const statusCode=statusByMethod[req.method.toLowerCase()];
+
+    sendResponse(res, statusCode, queryResponse);
+})
+
 
 module.exports={
     getResource,
@@ -105,4 +117,5 @@ module.exports={
     deleteResource, 
     createResource,
     sendResponse,
+    queryAndSendResponse
 }

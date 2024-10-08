@@ -66,11 +66,16 @@ const login = catchAsyncWrapper(async (req, res, next) =>{
 
 //Function meant to protect some routes based on token validation
 const protect = catchAsyncWrapper(async (req, res, next) => {
-    //Check token's existence
-    if(!(req.headers.authorization && req.headers.authorization.startsWith('Bearer')))
+    //Check token's or cookie's existence
+    if(!((req.headers.authorization && req.headers.authorization.startsWith('Bearer')) || req.cookies.jwt) )
         return(next(new appError('Please login to get access to operation', 401, 'fail')));
 
-    const token = req.headers.authorization.split(' ')[1];
+    let token;
+    if(req.headers.authorization)
+        token = req.headers.authorization.split(' ')[1];
+    else
+        token=req.cookies.jwt;
+
     //validate token
     let decoded;
     

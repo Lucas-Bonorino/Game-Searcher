@@ -5,7 +5,7 @@ const rateLimit=require('express-rate-limit');
 const helmet=require('helmet');
 const xss=require('xss-clean');
 const hpp=require('hpp');
-
+const cookieParser=require('cookie-parser');
 //Começa a rodar o servidor
 const app = express();
 const appError= require('./utils/appError');
@@ -23,6 +23,7 @@ app.use(hpp());
 
 app.use(cors({origin: '*'}));
 app.use(express.json({limit: '10kb'}));
+app.use(cookieParser());
 
 const limiter=rateLimit({
     max:1000,
