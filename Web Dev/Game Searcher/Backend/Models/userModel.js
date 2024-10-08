@@ -1,109 +1,113 @@
 const connection = require('./../utils/connection');
 const crypto = require('crypto');
 
-async function Add_User(user_data)
+function generateFilters(query)
 {
-    const client= await connection.connect();
+    let filters=[];
 
-    try{
-        const answer= await client.query(`INSERT into users (email, name, password, password_changed_at) values($1, $2, $3, NOW())`,[user_data.email, user_data.name, user_data.password]);
+    if(query.email){
+        const emailFilter={column: 'email', operation:'=', value:query.email};
 
-        client.release();
-        return(answer.rows);
-    }
-    catch(err)
-    {
-        client.release();
-        return(undefined);
-    }
-}
-
-async function Get_User(email)
-{
-    const client= await connection.connect();
-
-    const answer= await client.query(`select * from users where email=$1`, [email]);
-
-    client.release();
-
-    return(answer.rows);
-}
-
-//Verifies if password has been changed since user was last authenticated
-function Changed_Password(token_stamp, password_stamp)
-{
-    if(password_stamp)
-    {
-        const timestamp=parseInt(password_stamp.getTime(), 10)/1000;
-        return(token_stamp<timestamp);
+        filters.push(emailFilter);
     }
 
-    return(false);
-}
+    if(query.name){
+        const nameFilter={column:'name', operation:"=", value:query.name};
 
-function cryptoHash(token)
-{
-    const hashedToken= crypto.createHash('sha256').update(token).digest('hex');
-
-    return(hashedToken);
-}
-
-const AddResetToken= async email=>{    
-    const resetToken=crypto.randomBytes(32).toString('hex');
-
-    const client = await connection.connect();
-    const hashedToken=cryptoHash(resetToken);
-    const expirationDate= (Date.now()+10*60*1000)/1000;
-
-    try{
-        await client.query('INSERT into reset_tokens (token, email, expiration) values ($1, $2, to_timestamp($3));', [hashedToken, email, expirationDate]); 
-        client.release();
-    }
-    catch (err)
-    {
-        client.release();
-        return(undefined);
+        filters.push(nameFilter);
     }
 
-    return (resetToken); 
+    if(query.role){
+        const roleFilter={column:'role', operation:"=", value:query.role};
+
+        filters.push(roleFilter);
+    }
+
+    return(filters);
 }
 
-const getUserByToken= async token=>
+function generateUpdates(body)
 {
-    const client = await connection.connect();
-    const answer = await client.query('select email from reset_tokens where token=$1 and expiration > NOW();', [token]);
+    let updates=[];
 
-    client.release();
+    if(body.password){
+        const date=new Date();
+        console.log(date.toString());
+        const passwordUpdate={column:"password", value: body.password};
+        const passwordChangedUpdate={column: "password_changed_at", value:date  };
 
-    return(answer.rows);
+        updates.push(passwordUpdate, passwordChangedUpdate);
+    }
+
+    if(body.email){
+        const emailUpdate={column:"email", value:body.email};
+
+        updates.push(emailUpdate);
+    }
+
+    if(body.name){
+        const nameUpdate={column:"name", value:body.name};
+
+        updates.push(nameUpdate);
+    }
+
+    if(body.role){
+        const roleUpdate={column:"role", value:body.role};
+
+        updates.push(roleUpdate);
+    }
+
+    return(updates);
 }
 
-const updateUser = async (password, email) => 
+function generateValues(userData)
 {
-    
-    const client = await connection.connect();
-    const answer = await client.query('update users set password=$1,password_changed_at=NOW() where email=$2 returning *;', [password, email]);
-    
-    client.release();
+    let values=[];
+    let cols=[];
 
-    return(answer.rows);
+    if(userData.email){
+        values.push(userData.email);
+        cols.push('email');
+    }
+
+    if(userData.name){
+        values.push(userData.name);
+        cols.push('name');
+    }
+
+    if(userData.password){
+        values.push(userData.password);
+        cols.push('password');
+
+        const date=new Date();
+        values.push(date);
+        cols.push('password_changed_at');
+    }
+
+    if(userData.role){
+        values.push(userData.role);
+        cols.push('role');
+    }
+
+    return([values, cols]);
 }
 
-//Deletes all tokens which are not available anymore
-const updateTokens = async (token) => {
-    const client = await connection.connect();
-    await client.query('delete from reset_tokens where expiration < NOW() or token=$1', [token]);
-
-    client.release();
+function getResourceName()
+{
+    return('users');
 }
+
+function generateIdentifierFilter(req)
+{
+    return([{column: "email", operation: "=", value: req.params.email}]);
+}
+
+
 
 module.exports={
-    Add_User, 
-    Get_User,
-    updateUser,
-    updateTokens,
-    Changed_Password,
-    AddResetToken, 
-    cryptoHash,
-    getUserByToken
+    generateFilters,
+    generateUpdates,
+    generateIdentifierFilter,
+    generateValues,
+    getResourceName,
 }

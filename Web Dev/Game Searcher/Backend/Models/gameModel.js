@@ -2,7 +2,6 @@ const connection = require('./../utils/connection');
 const APIF =require('./../utils/APIFeatures');
 
 //Função para fazer query sql
-
 function generateFilters(query)
 {
     let filters=[];
@@ -60,43 +59,55 @@ function generateUpdates(body)
     let updates=[];
 
     if(body.tags){
-        const tagsUpdate={column:"tags", function:{operation:"array_cat", args:[{type: "col", value:"tags"}, {type:"arg", value:body.tags}]}};
+        const tagsUpdate={column:"tags", function:{operation:"array_cat", args:[{type: "col", value:"tags"}, {type:"arg", value:body.tags.map(el => el.toLowerCase())}]}};
 
         updates.push(tagsUpdate);
     }
 
     if(body.description)
     {
-        const descriptionUpdate={column: "description", operator: "||", operands:[{type: "col", value:"description"}, {type:"arg", value:body.description}]};
+        const descriptionUpdate={column: "description", operator: "||", operands:[{type: "col", value:"description"}, {type:"arg", value:body.description.trim()}]};
 
         updates.push(descriptionUpdate);
+    }
+
+    if(body.tagsRemove && !body.tags){
+        const tagsRemovalUpdate={column:"tags", function:{operation:"array_remove", args:[{type: "col", value:"tags"}, {type:"arg", value:body.tagsRemove.toLowerCase()}]}};
+
+        updates.push(tagsRemovalUpdate);
+    }
+
+    if(body.descriptionSubstitute && !body.description){
+        const descriptionSubstituteUpdate={column: "description", value: body.descriptionSubstitute.trim()};
+
+        updates.push(descriptionSubstituteUpdate);
     }
 
     return(updates);
 }
 
-function generateValues(game_data)
+function generateValues(gameData)
 {
     let values=[];
     let cols=[];
     
-    if(game_data.game_name){
-        values.push(game_data.game_name);
+    if(gameData.name){
+        values.push(APIF.Process_Sentence(gameData.name));
         cols.push('game_name');
     }
 
-    if(game_data.tags){
-        values.push(game_data.tags);
+    if(gameData.tags){
+        values.push(gameData.tags.map(el => el.toLowerCase()));
         cols.push('tags');
     }
 
-    if(game_data.release_date){
-        values.push(game_data.release_date);
+    if(gameData.release){
+        values.push(gameData.release);
         cols.push('release_date');
     }
 
-    if(game_data.description){
-        values.push(game_data.description);
+    if(gameData.description){
+        values.push(gameData.description.trim());
         cols.push('description');
     }
 
@@ -110,7 +121,7 @@ function getResourceName()
 
 function generateIdentifierFilter(req)
 {
-    return({column: "game_name", operation: "=", value: APIF.Process_Sentence(req.params.name)});
+    return([{column: "game_name", operation: "=", value: APIF.Process_Sentence(req.params.game)}]);
 }
 
 module.exports={
@@ -118,5 +129,5 @@ module.exports={
     generateValues,
     generateFilters,
     generateUpdates,
-    generateIdentifierFilter
+    generateIdentifierFilter,
 }

@@ -48,7 +48,7 @@ class queryWrapper {
 
     addFiltersALL(filters)
     {
-        if(filters)
+        if(filters.length)
         {
             this.Filter();
 
@@ -65,7 +65,7 @@ class queryWrapper {
 
     addFiltersANY(filters)
     {
-        if(filters)
+        if(filters.length)
         {
             this.Filter();
         
@@ -85,7 +85,7 @@ class queryWrapper {
         switch(option){
             case 'ANY': this.addFiltersANY(filters); break;
             case 'ALL': this.addFiltersALL(filters); break;
-            default:    this.addFiltersALL(filters); break;
+            default:    this.addFiltersANY(filters); break;
         }
 
         return(this);
@@ -232,14 +232,20 @@ class queryWrapper {
         return(this);
     }
 
+    substituteValue(update)
+    {
+        this.queryString+=` $${this.num} `;
+        this.num+=1;
+        this.args.push(update.value);
+    }
+
     addUpdate(update)
     {   
         this.queryString+=` ${update.column}=`;
        
-        if(update.function)
-            this.addFunction(update);
-        else
-            this.addOperator(update);
+        if(update.function) this.addFunction(update);
+        if(update.operator) this.addOperator(update);
+        if(update.value) this.substituteValue(update);
 
         this.queryString+=',';
 
@@ -289,11 +295,18 @@ class queryWrapper {
     {
         const client = await connection.connect();
         let answer;
+        
+        if(process.env.ENVIRONMENT==='dev')
+            this.logQuery();
 
         try{
             answer= (await client.query(this.queryString, this.args)).rows;
         }
         catch(err){
+
+            if(process.env.ENVIRONMENT==='dev')
+                console.log(err);
+
             answer=undefined;
         }
 

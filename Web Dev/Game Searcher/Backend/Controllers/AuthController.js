@@ -1,68 +1,67 @@
-const User= require('../Models/userModel');
 const catchAsyncWrapper=require('./../utils/catchAsyncWrapper');
-const db = require('../Models/userModel');
+const User = require('./../Controllers/UserController');
 const appError = require('../utils/appError');
 const jwt = require('jsonwebtoken');
 const BCrypt =require('bcryptjs');
 const {promisify} = require('util');
 const email = require('./../utils/email');
 const validator= require('validator');
+const Model= require('./../Models/authModel');
+const UserModel= require('./../Models/userModel');
+const factory = require('./handlerFactory');
 
-const signToken = id => {
+const GetToken=factory.getResource(Model);
+
+const AddToken=factory.createResource(Model);
+
+const DeleteToken=factory.deleteResource(Model);
+
+const signToken = async (id) => {
     return jwt.sign({id}, process.env.JWT_SECRET, {expiresIn: process.env.JWT_EXPIRES_IN});
 }
 
-const createSendToken = async (id, res, statusCode, data) =>{
-    const token=signToken(id);
+const createSendToken = async (id, res, statusCode, resourceData) =>{
+    const token=await signToken(id);
 
+    const date=new Date(Date.now()+process.env.JWT_COOKIE_EXPIRES_IN*24*60*60*1000);
+ 
     const cookieOptions={
-        expires: new Date.now()+JWT_COOKIE_EXPIRES_IN *24*60**60*1000,
+        expires: date,
         secure: false,
         httpOnly: true
     };
 
     res.cookie('jwt', token, cookieOptions);
 
-    res.status(statusCode).json({
-        status:'sucess',
-        token,
-        data
-    });
+    const answerObject={status:"sucess", token, data:{ resourceData } };
+
+    factory.sendResponse(res, statusCode, answerObject);
 }
 
 const signup=catchAsyncWrapper(async (req, res, next) =>{
-    const answer = await db.Add_User(req.body);
+    req.body.sendBack=true;
 
-    if(!answer)
-        return(next(new appError('Email already used by other user', 422, 'fail')));
+    const loggedUser=await User.AddUser(req, res, next);
 
-    const data={
-        name:req.body.name,
-        email:req.body.email, 
-    }
-
-    createSendToken(req.body.email, res, 200, data);
+    if(loggedUser)
+        createSendToken(req.body.email, res, 201, loggedUser);
+    else
+        return(next(new appError("Usuário já existente", 409, 'fail')));
 })
 
 const login = catchAsyncWrapper(async (req, res, next) =>{
-    const {email, password}=req.body;
-
-    //Verify body to see if it's in the correct format
-    if(!email || !password)
-        return(next(new appError('Please insert email and password', 400, 'fail')));
-
+    req.body.sendBack=true;
     //Verify if email and password are correct
-    const user=await db.Get_User(email)[0];
 
-    if(!user || !(await BCrypt.compare(password, user.password)))
+    const loggedUser=(await User.GetUser(req, res, next))[0];
+ 
+    if(!loggedUser || !(await BCrypt.compare(req.body.password, loggedUser.password)))
         return(next(new appError(`Invalid combination of email and password`, 401, 'fail')));
     
-    const token=signToken(user.email);
+    loggedUser.password=undefined;
+    loggedUser.password_changed_at=undefined;
 
-    res.status(201).json({
-        status: 'sucess',
-        token
-    });
+    createSendToken(loggedUser.email, res, 201, loggedUser);
 })
 
 //Function meant to protect some routes based on token validation
@@ -74,7 +73,7 @@ const protect = catchAsyncWrapper(async (req, res, next) => {
     const token = req.headers.authorization.split(' ')[1];
     //validate token
     let decoded;
-
+    
     try{
         decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);    
     }
@@ -82,44 +81,49 @@ const protect = catchAsyncWrapper(async (req, res, next) => {
     {
         return(next(new appError('Token validation failed', 401, 'fail')));
     }
-    
-    //verify if user still exists
-    const loggedUser=await db.Get_User(decoded.id)[0];
 
-    if(loggedUser)
+    req.query.email=decoded.id;
+    req.validCols=["name", "email", "role", "password_changed_at"];
+    req.body.sendBack=true;
+
+    //verify if user still exists
+    const loggedUser= (await User.GetUser(req, res, next))[0];
+
+    if(!loggedUser)
         return(next(new appError('User does not exist anymore', 401, 'fail')));
     
     //verify if password was recently changed
-
-    const passwordChanged= db.Changed_Password(decoded.iat, loggedUser.password_changed_at);
+    const passwordChanged=Model.changedPassword(decoded.iat, loggedUser.password_changed_at);
 
     if(passwordChanged)
         return(next(new appError('Passsword changed since last authenticated, please login again', 401, 'fail')));
 
     //grant acess to protected route
     req.user=loggedUser;
+    
+    req.validCols=undefined;
+
+    req.body.sendBack=undefined;
     next();
 })
 
-const restrictTo= (...roles) =>{
-    return (req, res, next) =>{
-        
-        if(!roles.includes(req.user.role))
-            return(next(new appError('You do not have permission to perform this action', 403, 'fail')));
-
-        next();
-    }
-}
-
 const forgotPassword=catchAsyncWrapper(async (req, res, next) =>{
     //Verify if user exists
-    const user = (await db.Get_User(req.body.email))[0];
-
+    req.body.sendBack=true;
+    req.query={email:req.body.email};
+    
+    const user = (await User.GetUser(req, res, next))[0];
+ 
     if(!user)
         return(next(new appError('No user with specified email address found', 404, 'fail')));
 
     //Generate reset token
-    const resetToken=await db.AddResetToken(user.email);
+    req.body=Model.generateTokenData(req.body.email);
+
+    req.body.sendBack=true;
+    
+    const answer=await AddToken(req, res, next);
+    const resetToken=req.body.resetToken;
 
     if(!resetToken)
         return(next(new appError('Reset token generation failed, try again in some time', 500, 'error')));
@@ -151,30 +155,38 @@ const forgotPassword=catchAsyncWrapper(async (req, res, next) =>{
 
 const resetPassword=catchAsyncWrapper(async (req, res, next)=>{
     //Get user based on token
-    const hashedToken=db.cryptoHash(req.params.token);
+    const hashedToken=Model.cryptoHash(req.params.token);
 
     //If token has not expired, and there is user, set password
-    const user = (await db.getUserByToken(hashedToken))[0];
+    req.query={token: hashedToken, cols: ["email"], option:"ALL"};
+    req.body.sendBack=true;
+    const user = (await GetToken(req, res, next))[0];
 
-    if(!user)
-        return(next(new appError('token is invalid or has expired', 400, 'fail')));
+    if(!user) return(next(new appError('Token is invalid or has expired', 400, 'fail')));
 
     //Update user password
-    await db.updateUser(req.body.password, user.email);
+    req.params.email=user.email;
+  
+    const answer= (await User.UpdateUser(req, res, next));
+
+    if(!answer) return(next(new appError('An error ocurred when trying to update password, please try again later', 500, 'fail')));
 
     //Removes any unusable reset token
-    await db.updateTokens(hashedToken);
+    const deleteAnswer=await DeleteToken(req, res, next);
     
     //Log the user in 
-    const token=signToken(user.email);
-
-    res.status(200).json({
-        status: 'sucess',
-        token
-    });
-
+    createSendToken(user.email, res, 200, undefined);
 })
 
+const restrictTo= (...roles) =>{
+    return (req, res, next) =>{
+        
+        if(!roles.includes(req.user.role))
+            return(next(new appError('You do not have permission to perform this action', 403, 'fail')));
+
+        next();
+    }
+}
 
 const validateEmail=(req, res, next) =>{
     const validEmail=validator.isEmail(req.body.email);
@@ -191,7 +203,7 @@ const confirmPassword= (req, res, next) =>{
     if(!confirmedPassword)
         next(new appError('Passwords must be the same', 422, 'fail'));
 
-    next()
+    next();
 }
 
 const hashPassword=async (req, res, next) =>{
@@ -200,6 +212,7 @@ const hashPassword=async (req, res, next) =>{
     
     next();
 }
+
 
 module.exports={
     signup,
@@ -210,5 +223,5 @@ module.exports={
     resetPassword,
     validateEmail,
     confirmPassword,
-    hashPassword
+    hashPassword,
 }
