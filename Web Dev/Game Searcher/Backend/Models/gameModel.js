@@ -90,14 +90,15 @@ function generateValues(gameData)
 {
     let values=[];
     let cols=[];
-    
+
     if(gameData.name){
         values.push(APIF.Process_Sentence(gameData.name));
         cols.push('game_name');
     }
-
+    
     if(gameData.tags){
-        values.push(gameData.tags.map(el => el.toLowerCase()));
+        values.push(gameData.tags.replaceAll(/'['']'/g, '').split(',').map(el => el.toLowerCase()));
+
         cols.push('tags');
     }
 

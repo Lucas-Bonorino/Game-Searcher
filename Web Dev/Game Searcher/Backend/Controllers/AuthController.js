@@ -20,10 +20,8 @@ const signToken = async (id) => {
     return jwt.sign({id}, process.env.JWT_SECRET, {expiresIn: process.env.JWT_EXPIRES_IN});
 }
 
-const createSendToken = async (id, res, statusCode, resourceData) =>{
+const createSendToken = async (id, res, statusCode, resourceData, date) =>{
     const token=await signToken(id);
-
-    const date=new Date(Date.now()+process.env.JWT_COOKIE_EXPIRES_IN*24*60*60*1000);
  
     const cookieOptions={
         expires: date,
@@ -42,9 +40,10 @@ const signup=catchAsyncWrapper(async (req, res, next) =>{
     req.body.sendBack=true;
 
     const loggedUser=await factory.createResource(UserModel)(req, res, next);
+    const date=new Date(Date.now()+process.env.JWT_COOKIE_EXPIRES_IN*24*60*60*1000);
 
     if(loggedUser)
-        createSendToken(req.body.email, res, 201, loggedUser);
+        createSendToken(req.body.email, res, 201, loggedUser, date);
     else
         return(next(new appError("Usuário já existente", 409, 'fail')));
 })
@@ -53,14 +52,22 @@ const login = catchAsyncWrapper(async (req, res, next) =>{
     //Verify if email and password are correct
 
     const loggedUser=(await factory.getResource(UserModel)(req, res, next))[0];
- 
+    
     if(!loggedUser || !(await BCrypt.compare(req.body.password, loggedUser.password)))
         return(next(new appError(`Invalid combination of email and password`, 401, 'fail')));
     
     loggedUser.password=undefined;
     loggedUser.password_changed_at=undefined;
 
-    createSendToken(loggedUser.email, res, 201, loggedUser);
+    const date=new Date(Date.now()+process.env.JWT_COOKIE_EXPIRES_IN*24*60*60*1000);
+
+    createSendToken(loggedUser.email, res, 201, loggedUser, date);
+})
+
+const logout = catchAsyncWrapper(async(rec, res, next) =>{
+    const date=new Date(Date.now()+1*1000);
+
+    createSendToken('expiration token', res, 200, undefined, date);
 })
 
 //Function meant to protect some routes based on token validation
@@ -93,7 +100,7 @@ const protect = catchAsyncWrapper(async (req, res, next) => {
     const loggedUser= (await factory.getResource(UserModel)(req, res, next))[0];
 
     if(!loggedUser)
-        return(next(new appError('User does not exist anymore', 401, 'fail')));
+        return(next(new appError('User does not exist', 401, 'fail')));
     
     //verify if password was recently changed
     const passwordChanged=Model.changedPassword(decoded.iat, loggedUser.password_changed_at);
@@ -120,8 +127,6 @@ const forgotPassword=catchAsyncWrapper(async (req, res, next) =>{
 
     //Generate reset token
     req.body=Model.generateTokenData(req.body.email);
-
-    req.body.sendBack=true;
     
     const answer=await AddToken(req, res, next);
     const resetToken=req.body.resetToken;
@@ -160,7 +165,7 @@ const resetPassword=catchAsyncWrapper(async (req, res, next)=>{
 
     //If token has not expired, and there is user, set password
     req.query={token: hashedToken, cols: ["email"], option:"ALL"};
-    req.body.sendBack=true;
+
     const user = (await GetToken(req, res, next))[0];
 
     if(!user) return(next(new appError('Token is invalid or has expired', 400, 'fail')));
@@ -175,8 +180,9 @@ const resetPassword=catchAsyncWrapper(async (req, res, next)=>{
     //Removes any unusable reset token
     const deleteAnswer=await DeleteToken(req, res, next);
     
+    const date=new Date(Date.now()-1+process.env.JWT_COOKIE_EXPIRES_IN*24*60*60*1000);
     //Log the user in 
-    createSendToken(user.email, res, 200, undefined);
+    createSendToken(user.email, res, 200, undefined, date);
 })
 
 const restrictTo= (...roles) =>{
@@ -218,6 +224,7 @@ const hashPassword=async (req, res, next) =>{
 module.exports={
     signup,
     login, 
+    logout,
     protect,
     restrictTo,
     forgotPassword,

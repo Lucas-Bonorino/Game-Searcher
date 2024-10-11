@@ -32,7 +32,6 @@ function generateUpdates(body)
 
     if(body.password){
         const date=new Date();
-        console.log(date.toString());
         const passwordUpdate={column:"password", value: body.password};
         const passwordChangedUpdate={column: "password_changed_at", value:date  };
 

@@ -67,7 +67,7 @@ const queryAndSendResponse=(Model) =>catchAsyncWrapper(async (req,res, next)=>{
     const queryResponse=await queryFunction(req, res, next);
     
    
-    if(!queryResponse.length){
+    if(!queryResponse || !queryResponse.length){
         const errorObj=errorByMethod[req.method.toLowerCase()];
         return(next(new appError(errorObj.msg, errorObj.code, 'fail')));
     }
@@ -85,5 +85,6 @@ module.exports={
     deleteResource, 
     createResource,
     sendResponse,
-    queryAndSendResponse
+    queryAndSendResponse,
+    generatAnswerObj
 }

@@ -1,27 +1,26 @@
 const appError = require("./appError");
 
-const restrictBody=(...cols)=>{
-    return ((req, res, next) =>{
-        cols.forEach(col => {
-            if(req.body[col])
-                req.body[col]=undefined;
-        });
+const restrictObj=(obj, cols)=>{
+    let newBody={};
+
+    Object.keys(obj).forEach(field=>{
+        if(cols.includes(field)) newBody[field]=obj[field]; 
+    });
+
+    return(newBody);
+}
+
+const restrictBody=(...cols) =>{
+    return((req, res, next)=>{
+        req.body=restrictObj(req.body, cols);
 
         next();
     });
 }
 
 const restrictQuery=(...cols)=>{
-    return ((req, res, next) =>{
-        if(cols.length){
-            cols.forEach(col => {
-                if(req.query[col])
-                    req.query[col]=undefined;
-            });
-        }
-        else{
-            req.query={dull:1};
-        }
+    return((req, res, next)=>{
+        req.query=restrictObj(req.query, cols);
 
         next();
     });
@@ -51,6 +50,7 @@ const restrictReturns=(...cols)=>{
         next();
     });
 }
+
 
 const checkRequiredBodyFields=(...cols)=>{
     return((req, res, next)=>{
@@ -84,10 +84,23 @@ const checkUpdates=(...cols)=>{
     });
 }
 
+//Transfers data from one body field to the next
+const transferDataBetweenPartFields=(originPart, fieldOrigin, destinyPart, fieldDestiny)=>{
+    return(req, res, next) =>{
+        if(!req[destinyPart])
+            req[destinyPart]={};
+
+        req[destinyPart][fieldDestiny]=req[originPart][fieldOrigin];
+
+        next();
+    }
+}
+
 module.exports={
     restrictBody,
     restrictQuery,
     restrictReturns,
     checkRequiredBodyFields,
-    checkUpdates
+    checkUpdates, 
+    transferDataBetweenPartFields
 }

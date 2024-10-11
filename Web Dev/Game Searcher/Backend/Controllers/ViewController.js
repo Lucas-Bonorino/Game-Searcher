@@ -1,9 +1,10 @@
 const catchAsyncWrapper = require("../utils/catchAsyncWrapper");
-const gameController=require('./GameController');
+const factory = require('./../Controllers/handlerFactory');
+const gameModel=require('./../Models/gameModel');
 const {promisify} = require('util');
 
 const getResults=catchAsyncWrapper(async (req, res, next) =>{
-    const games=await gameController.GetGames(req, res, next);
+    const games=await factory.getResource(gameModel)(req, res, next);
 
     res.status(200).render('searchResults', {
         games
@@ -28,13 +29,15 @@ const isLogged=catchAsyncWrapper(async(req, res, next)=>{
         req.body.sendBack=undefined;
 
         if(!loggedUser)
-            next();
+            return(next());
 
         //verify if password was recently changed
         const passwordChanged=Model.changedPassword(decoded.iat, loggedUser.password_changed_at);
 
         if(passwordChanged)
-            return(next(new appError('Passsword changed since last authenticated, please login again', 401, 'fail')));
+            return(next());
+
+        res.locals.user=loggedUser;
     }
 
     next();

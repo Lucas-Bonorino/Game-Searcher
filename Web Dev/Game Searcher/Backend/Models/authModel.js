@@ -62,7 +62,6 @@ function changedPassword(token_stamp, password_stamp)
     if(password_stamp)
     {
         const timestamp=parseInt(password_stamp.getTime(), 10)/1000;
-        console.log(Date(token_stamp).toString(), password_stamp.toString());
         return(token_stamp<timestamp);
     }
 
