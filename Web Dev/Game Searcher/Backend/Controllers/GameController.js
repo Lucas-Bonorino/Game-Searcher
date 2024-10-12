@@ -11,8 +11,8 @@ const UpdateGame = factory.queryAndSendResponse(Model);
 const checkUpdates=middlewareFactory.checkUpdates('description', 'tags', 'tagsRemove', 'descriptionSubstitute');
 const checkBody=middlewareFactory.checkRequiredBodyFields('name', 'description', 'release');
 
-const uploadCover=imageProcessing.upload.fields([{name: 'gameCover', maxCount: 1}]);
-const resizeCover=imageProcessing.resizeImages('games', ['gameCover'], [{x:500, y:500}], 'body','name');
+const uploadImages=imageProcessing.upload.fields([{name: 'gameCover', maxCount: 1}, {name:'gameImages', maxCount:5}, {name: 'pageBackground', maxCount: 1}]);
+const resizeImages=imageProcessing.resizeImages('games', ['gameCover', 'gameImages', 'pageBackground'], [{x:320, y:240}, {x:510, y:290}, {x:910, y:160}], 'body','name');
 
 module.exports={
     GetGames,
@@ -21,6 +21,6 @@ module.exports={
     UpdateGame,
     checkUpdates,
     checkBody,
-    uploadCover,
-    resizeCover
+    uploadImages,
+    resizeImages
 }

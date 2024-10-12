@@ -42,7 +42,7 @@ const getFileNumDir=async(dirPath)=>{
 //function to resize any images that might be uploaded on forms to the api
 const resizeImages=(resourceName, fieldNames, dimList, idFieldLocation, id) =>{
     return(catchAsyncWrapper(async (req, res, next)=>{
-        const dirPath=`public/img/${resourceName}/${req[idFieldLocation][id]}`;
+        const dirPath=`public/img/${resourceName}/${req[idFieldLocation][id].toLowerCase().replaceAll(' ', '-')}`;
    
         let imageNum=await getFileNumDir('../'+dirPath)+1;
         //For each field that has an image
@@ -53,8 +53,8 @@ const resizeImages=(resourceName, fieldNames, dimList, idFieldLocation, id) =>{
                 //for each file
                 const dims=dimList[index];
                 await Promise.all (req.files[fieldName].map(async image=>{
-                    const imageName=`${req[idFieldLocation][id]}-img-${imageNum}.jpeg`
-                    const fileName=path.join(dirPath,imageName);
+                    const imageName=`${req[idFieldLocation][id].toLowerCase().replaceAll(' ', '-')}-img-${imageNum}`
+                    const fileName=path.join(dirPath,imageName+'.jpeg');
                     //Resize it 
                     await resizeImage(image.buffer, fileName, dims);
                     //Put the name of the image on the list of names

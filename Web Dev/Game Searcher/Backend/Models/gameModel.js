@@ -83,6 +83,24 @@ function generateUpdates(body)
         updates.push(descriptionSubstituteUpdate);
     }
 
+    if(gameData.gameCover){
+        const gameCoverUpdate={column:"game_cover", value: gameData.gameCover};
+
+        updates.push(gameCoverUpdate);
+    }
+
+    if(gameData.gameImages){
+        const gameImagesUpdate={column:"game_images", function:{operation:"array_cat", args:[{type: "col", value:"game_images"}, {type:"arg", value:gameData.gameImages}]}};
+        
+        updates.push(gameImagesUpdate);
+    }
+
+    if(gameDate.pageBackground){
+        const gamePageBackgroundUpdate={column: "game_page_background", value:gameDate.pageBackground };
+        
+        updates.push(gamePageBackgroundUpdate);
+    }
+
     return(updates);
 }
 
@@ -98,7 +116,6 @@ function generateValues(gameData)
     
     if(gameData.tags){
         values.push(gameData.tags.replaceAll(/'['']'/g, '').split(',').map(el => el.toLowerCase()));
-
         cols.push('tags');
     }
 
@@ -110,6 +127,21 @@ function generateValues(gameData)
     if(gameData.description){
         values.push(gameData.description.trim());
         cols.push('description');
+    }
+
+    if(gameData.gameCover){
+        values.push(gameData.gameCover);
+        cols.push('game_cover');
+    }
+
+    if(gameData.gameImages){
+        values.push(gameData.gameImages);
+        cols.push('game_images');
+    }
+
+    if(gameDate.pageBackground){
+        values.push(gameData.pageBackground);
+        values.push('game_page_background');
     }
 
     return([values, cols]);

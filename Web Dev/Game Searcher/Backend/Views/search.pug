@@ -1,12 +1,9 @@
 extends base
 
 block contents
-    main.main-body
-        section
-            div.search
-                h1.engine-name Game Searcher
-                input.search(type='text', id='search-field', name='fname', value='', placeholder='Insira aqui as tags que você deseja buscar(use hífens para espaços)') 
-                div.buttons 
-                    button.search(type='button', onclick='Consult()') Search 
-                    button.search(type='button', onclick='Consult()') Advanced Search 
+    main.search-main-body
+        h1.engine-name Game Searcher
+        form.search
+            input.search-field(type='text', id='search-field', name='fname', value='', placeholder='Insira aqui as tags que você deseja buscar(use hífens para espaços)') 
+            input.search-button(type='button', id='search-button', value='Search')  
 

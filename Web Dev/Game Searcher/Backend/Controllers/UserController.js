@@ -10,9 +10,7 @@ const UpdateUser=factory.queryAndSendResponse(Model);
 
 const DeleteUser=factory.queryAndSendResponse(Model);
 
-const GetLoggedUser=(req, res, next) =>{
-    factory.sendResponse(res, 200, factory.generatAnswerObj(req.user));
-}
+const GetLoggedUser=(req, res, next) => factory.sendResponse(res, 200, factory.generatAnswerObj(req.user));
 
 const checkSignupBody=middlewareFactory.checkRequiredBodyFields('email', 'name', 'password','passwordConfirmation');
 const checkLoginBody=middlewareFactory.checkRequiredBodyFields('email', 'password');

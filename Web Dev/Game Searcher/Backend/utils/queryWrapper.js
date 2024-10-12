@@ -296,7 +296,7 @@ class queryWrapper {
         const client = await connection.connect();
         let answer;
         
-        if(process.env.ENVIRONMENT==='dev')
+        if(process.env.NODE_ENV==='development')
             this.logQuery();
 
         try{
@@ -304,7 +304,7 @@ class queryWrapper {
         }
         catch(err){
 
-            if(process.env.ENVIRONMENT==='dev')
+            if(process.env.NODE_ENV==='development')
                 console.log(err);
 
             answer=undefined;

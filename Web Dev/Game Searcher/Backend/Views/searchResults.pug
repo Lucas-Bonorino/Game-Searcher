@@ -1,13 +1,13 @@
 extends base
 
 block contents
-    main.main-body
-        section.results
-            div.results
-                each game in games
-                    div 
-                        h2.result-name=game.game_name
-                        p.result-description=game.description
-                        div.result-tags
-                            each tag in game.tags 
-                                div.game-tag=tag
+    main.result-main-body
+        each game in games
+            div.result
+                img.cover(src=`/img/games/${game.game_name.replaceAll(' ', '-').toLowerCase()}/${game.game_cover}.jpeg`) 
+                div.result-data 
+                    h2.result-name=game.game_name
+                    p.result-description=game.description
+                    div.result-tags
+                        each tag in game.tags 
+                            div.game-tag=tag

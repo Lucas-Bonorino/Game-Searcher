@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Revalia&display=swap');
 
+/*footer element */
 footer {
     position: fixed;
     bottom: 0%;
@@ -22,26 +23,7 @@ footer {
     font-size: 1rem;
 }
 
-main {
-    left: 0%;
-    width: 100%;
-    height: 100%;
-    color:#424242;
-    text-align: center;
-
-}
-
-.main-body {
-    top: 20%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.page-body{
-    background-color: #C5C5C5;
-}
-
+/*Tab row on the header of the page*/
 .tabs-row{
     display: flex;
     flex-direction: row;
@@ -67,15 +49,35 @@ main {
     transform: scale();
 }
 
+/* Page */
+.page-body{
+    background-color: #C5C5C5;
+}
+
+/*Search page*/
+main {
+    left: 0%;
+    width: 100%;
+    height: 100%;
+    color:#424242;
+    text-align: center;
+
+}
+
+.search-main-body {
+    margin-top: 10%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
 .engine-name{
     font-family: Revalia, sans-serif;
     font-size: 5em;
     margin-bottom: 1%;
 }
 
-
-div.search {
-    margin-top: 30%;
+form.search {
     width: 100%;
     height: 100%; 
     display: flex;
@@ -83,7 +85,8 @@ div.search {
     align-items: center;
 }
 
-input.search {
+
+input.search-field {
     border-radius: .9em;
     border-style: none;
     width: 55em;
@@ -94,7 +97,7 @@ input.search {
     font-family: Arial, sans-serif;
 }
 
-button.search {
+input.search-button {
     border-radius: 2em;
     width: 8em;
     height: 3em;
@@ -107,35 +110,39 @@ button.search {
     font-weight: bold;
 }
 
-button.search:hover {
+input.search-button:hover {
     background-color: #1a7475;
 }
 
-div.buttons{
-    display: flex;
-    flex-direction: row;
+input.search-button:active{
+    scale: 0.98;
+    border-style: inset;
 }
 
-section.results {
+/* Result page */
+.result-main-body {
+    margin-top: 7%;
+    margin-bottom: 10%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+div.result {
+    margin-bottom:1em;
+    background-color: #F5F5F5;
+    width: 90%;
+    height: 30%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    border-radius: 10px;
+}
+
+div.result-data{
     display: flex;
     flex-direction: column;
     align-items: start;
-    width: 37%;
-    height: 25%;
-    margin-top: 1%;
-    overflow-y: auto;
-}
-
-div.results {
-    margin-top:6%;
-    background-color: #F5F5F5;
-    width: 100%;
-    height: 80%;
-    display: grid;
-    grid-template-columns: 100px 100px 100px;
-    /*flex-direction: column;
-    align-items: start;*/
-    border-radius: 10px;
 }
 
 .result-description {
@@ -158,7 +165,7 @@ div.results {
     display: flex;
     flex-direction: row;
     margin-bottom: 1em;
-    margin-top: 0px;
+    margin-top: 1em;
 }
 
 .game-tag {
@@ -182,5 +189,8 @@ div.results {
 .results::-webkit-scrollbar-thumb {
     background-color: #424242;
     border-radius: 10px;
+}
 
+.cover {
+    border-radius: 10px;
 }

@@ -46,5 +46,5 @@ const isLogged=catchAsyncWrapper(async(req, res, next)=>{
 module.exports={
     getMainPage,
     getResults,
-
+    isLogged
 };

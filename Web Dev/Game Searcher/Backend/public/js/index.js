@@ -1,17 +1,13 @@
+import { Consult } from "./consult";
 
-async function Consult()
-{
-    //O value pega o quê está dentro da tag
-    let search_field=document.getElementById("search-field").value.trim();
+const searchButton=document.getElementById('search-button');
 
-    let tags=search_field.replaceAll(/[ \t\r\n\v\f]+/g, "+");
-
-    let plusLen=tags.replaceAll(/[^+]/g, "").length;
-
-    let queryString='';
-  
-    if(plusLen!==tags.length)
-        queryString=`?tags=${tags}`;
-
-    location.assign('/results'+queryString);
+if(searchButton){
+    searchButton.addEventListener('click', ()=> {
+        let search_field=document.getElementById("search-field").value.trim();
+        Consult(search_field);
+    });
 }
+
+
+
