@@ -1,0 +1,13 @@
+extends base
+
+block contents
+    main.result-main-body
+        each game in games
+            section.result
+                img.cover(src=`/img/games/${game.game_name.replaceAll(' ', '-').toLowerCase()}/${game.game_cover}.jpeg` alt=`${game.game_name} cover`) 
+                div.result-data 
+                    h2.result-name=game.game_name
+                    p.result-description=game.description
+                    div.result-tags
+                        each tag in game.tags 
+                            div.game-tag=tag

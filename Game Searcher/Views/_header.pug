@@ -1,0 +1,13 @@
+mixin navItem(TabName, link) 
+    a.tab(href=link)= TabName     
+
+header.page_header
+    div.banner
+        nav.tab-row
+            if user
+                +navItem('Logout', "ar")
+                +navItem('Add Game', '#')
+                +navItem('User Page', '#')
+            else 
+                +navItem('Login', 'login')
+                +navItem('Signup', 'signup')
