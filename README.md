@@ -15,8 +15,8 @@ This is a search engine for finding games based on a series of filters.
 
 ## Tela de busca
 
-    ![Tela de busca](screenshots/Search%20Screen.png)
+![Tela de busca](screenshots/Search%20Screen.png)
 
 ## Tela de resultados
 
-    ![Tela de resultados](screenshots/Search%20result%20screen.png)
+![Tela de resultados](screenshots/Search%20result%20screen.png)
