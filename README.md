@@ -1,6 +1,8 @@
 # Game Searcher
 This is a search engine for finding games based on a series of filters. 
 
+[Deployed website](https://game-searcher.onrender.com)
+
 # Current features:
 1. API which allows for searching based on any data of the game: name, keywords(present on the description of the game), release date or tags
 2. Authentication system for blocking the usage of some features through the API
