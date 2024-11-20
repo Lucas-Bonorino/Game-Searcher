@@ -4,7 +4,7 @@
   "main": "backendApp.js",
   "targets": {
     "default": {
-      "source":"./public/js/index.js",
+      "source": "./public/js/index.js",
       "distDir": "./public/bundledJS"
     }
   },
@@ -29,6 +29,7 @@
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.15",
+    "pg": "^8.13.1",
     "pug": "^3.0.3",
     "sharp": "^0.33.5",
     "validator": "^13.12.0",
