@@ -15,7 +15,7 @@ This is a search engine for finding games based on a series of filters.
 
 ## Tela de busca
 
-    ![Tela de busca](https://github.com/Lucas-Bonorino/Portfolio-Lucas-Bonorino/blob/main/screenshots/Search%20Screen.png?raw=true)
+    ![Tela de busca](https://raw.githubusercontent.com/Lucas-Bonorino/Portfolio-Lucas-Bonorino/refs/heads/main/screenshots/Search%20Screen.png)
 
 ## Tela de resultados
 
